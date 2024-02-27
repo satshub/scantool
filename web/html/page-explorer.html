@@ -1,6 +1,6 @@
 {{ define "LayoutContent" }}
 
-<input id="query-box" class="query-box" type="text" size="64" value="{{ .QueryText }}" spellcheck="false" />
+<input id="query-box" class="query-box" type="text" size="64" value="{{ .QueryText }}" spellcheck="false" placeholder="Search by Txn Hash/Block Hash/Block Height" />
 <div>{{ template "QueryResults" .QueryResults }}</div>
 
 {{ end }}

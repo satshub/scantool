@@ -8,7 +8,7 @@
 				<tr>
 					<td class="maximized-section maximized-section-name">
 						<div style="font-size:x-large; font-weight:bold; margin-bottom:8px;">Input {{ .InputIndex }}</div>
-						<div style="display:inline-block; padding:3px 6px; border-radius:5px; border:1px solid; font-weight:bold; cursor:pointer; background-color:#00b000; color:white;"
+						<div style="display:inline-block; padding:3px 6px; border-radius:5px; border:1px solid; font-weight:bold; cursor:pointer; background-color:black; color:white;"
 								onclick="$ ('#input-maximized-{{ .InputIndex }}').css ('display', 'none'); $ ('#input-minimized-{{ .InputIndex }}').css ('display', 'block');">Close</div>
 					</td>
 
@@ -104,7 +104,7 @@
 							<td class="maximized-section maximized-section-name">
 								<div>Tap Script</div>
 								{{ if .Segwit.TapScript.IsOrdinal }}
-									<div style="margin-top:8px; color:red;">[&nbsp;ORDINAL&nbsp;]</div>
+									<div style="margin-top:8px; color:green;">[&nbsp;ORDINAL&nbsp;]</div>
 								{{ end }}
 							</td>
 							<td class="maximized-section maximized-section-data">{{ template "FieldSet" .Segwit.TapScript.FieldSet }}</td>
