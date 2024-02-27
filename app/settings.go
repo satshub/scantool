@@ -23,8 +23,9 @@ type settingsManager struct {
 
 	nodeVersionStr string
 
-	addr string
-	port uint16
+	baseUrl string
+	addr    string
+	port    uint16
 
 	noWeb   bool
 	caching bool
@@ -81,7 +82,8 @@ func (s *settingsManager) GetNodePassword() string {
 
 func (s *settingsManager) GetBaseUrl(alwaysIncludePort bool) string {
 	if s.port != 80 || alwaysIncludePort {
-		return fmt.Sprintf("%s:%d", s.addr, s.port)
+		//return fmt.Sprintf("%s:%d", s.addr, s.port)
+		return s.baseUrl
 	}
 
 	return s.addr
@@ -155,7 +157,9 @@ func (s *settingsManager) setSettings(settings map[string]string) {
 		case "bitcoin-core-password":
 			s.bitcoinCorePassword = v
 
-		// scantool settings
+			// scantool settings
+		case "base-url":
+			s.baseUrl = v
 		case "addr":
 			s.addr = v
 		case "port":
