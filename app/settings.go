@@ -90,7 +90,8 @@ func (s *settingsManager) GetBaseUrl(alwaysIncludePort bool) string {
 }
 
 func (s *settingsManager) GetFullUrl() string {
-	return fmt.Sprintf("http://%s", s.GetBaseUrl(false))
+	//return fmt.Sprintf("http://%s", s.GetBaseUrl(false))
+	return fmt.Sprintf("http://%s:%d", s.addr, s.port)
 }
 
 func (s *settingsManager) GetAddr() string {
