@@ -1,13 +1,13 @@
 package node
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
-	"errors"
-	"bytes"
-	"strings"
-	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/btc-script-explorer/scantool/app"
 )
@@ -16,36 +16,42 @@ type BitcoinCore struct {
 	version string
 }
 
-func NewBitcoinCore () (*BitcoinCore, error) {
-	
-	bc := BitcoinCore {}
-	bc.version = bc.getVersionStr ()
-	if len (bc.version) == 0 { return nil, errors.New ("Failed to connect to Bitcoin Node.") }
+func NewBitcoinCore() (*BitcoinCore, error) {
+
+	bc := BitcoinCore{}
+	bc.version = bc.getVersionStr()
+	if len(bc.version) == 0 {
+		return nil, errors.New("Failed to connect to Bitcoin Node.")
+	}
 	return &bc, nil
 }
 
-func (bc *BitcoinCore) getNodeType () string {
+func (bc *BitcoinCore) getNodeType() string {
 	return "Bitcoin Core"
 }
 
-func (bc *BitcoinCore) GetVersionString () string {
-	return bc.getNodeType () + " " + bc.version
+func (bc *BitcoinCore) GetVersionString() string {
+	return bc.getNodeType() + " " + bc.version
 }
 
-func (bc *BitcoinCore) getVersionStr () string {
-	networkInfo := bc.getNetworkInfo ()
-	if networkInfo == nil { return "" }
-	if networkInfo ["subversion"] == nil { return "" }
-
-	// the version must be extracted from the subversion field
-	versionStr := networkInfo ["subversion"].(string)
-	if strings.Contains (versionStr, ":") {
-		parts := strings.Split (versionStr, ":")
-		versionStr = parts [1]
+func (bc *BitcoinCore) getVersionStr() string {
+	networkInfo := bc.getNetworkInfo()
+	if networkInfo == nil {
+		return ""
+	}
+	if networkInfo["subversion"] == nil {
+		return ""
 	}
 
-	if strings.Contains (versionStr, "/") {
-		versionStr = strings.Replace (versionStr, "/", "", -1)
+	// the version must be extracted from the subversion field
+	versionStr := networkInfo["subversion"].(string)
+	if strings.Contains(versionStr, ":") {
+		parts := strings.Split(versionStr, ":")
+		versionStr = parts[1]
+	}
+
+	if strings.Contains(versionStr, "/") {
+		versionStr = strings.Replace(versionStr, "/", "", -1)
 	}
 
 	return versionStr
@@ -53,61 +59,76 @@ func (bc *BitcoinCore) getVersionStr () string {
 
 // API functions
 
-func (bc *BitcoinCore) getBlock (blockHash string, withTxData bool) (map [string] interface {}, error) {
+func (bc *BitcoinCore) getBlock(blockHash string, withTxData bool) (map[string]interface{}, error) {
 
 	verbosityLevel := 1
-	if withTxData { verbosityLevel = 2 }
-	jsonResult := bc.getJson ("getblock", [] interface {} { blockHash, verbosityLevel })
+	if withTxData {
+		verbosityLevel = 2
+	}
+	fmt.Println("block hash:", blockHash)
+	jsonResult := bc.getJson("getblock", []interface{}{blockHash, verbosityLevel})
 
-	var rawResponse map [string] interface {}
-	err := json.Unmarshal (jsonResult, &rawResponse)
-	if err != nil { return nil, errors.New ("JSON ERROR: " + err.Error ()) }
+	var rawResponse map[string]interface{}
+	err := json.Unmarshal(jsonResult, &rawResponse)
+	if err != nil {
+		return nil, errors.New("JSON ERROR: " + err.Error())
+	}
 
-	if rawResponse ["error"] != nil { return nil, errors.New ("BITCOIN CORE ERROR: " + rawResponse ["error"].(map [string] interface {}) ["message"].(string)) }
-	if rawResponse ["result"] == nil { return nil, errors.New ("BITCOIN CORE ERROR: No response from node.") }
+	if rawResponse["error"] != nil {
+		return nil, errors.New("BITCOIN CORE ERROR: " + rawResponse["error"].(map[string]interface{})["message"].(string))
+	}
+	if rawResponse["result"] == nil {
+		return nil, errors.New("BITCOIN CORE ERROR: No response from node.")
+	}
 
-	return rawResponse ["result"].(map [string] interface {}), nil
+	return rawResponse["result"].(map[string]interface{}), nil
 }
 
-func (bc *BitcoinCore) getBestBlockHash () string {
-	jsonResult := bc.getJson ("getbestblockhash", [] interface {} {})
-	if len (jsonResult) == 0 { return "" }
-
-	var rawResponse map [string] interface {}
-	err := json.Unmarshal (jsonResult, &rawResponse)
-	if err != nil { fmt.Println (err.Error ()) }
-
-	// check for error from node in json
-	if rawResponse ["error"] != nil {
-		fmt.Println (rawResponse ["error"].(map [string] interface {}) ["message"])
+func (bc *BitcoinCore) getBestBlockHash() string {
+	jsonResult := bc.getJson("getbestblockhash", []interface{}{})
+	if len(jsonResult) == 0 {
 		return ""
 	}
 
-	return rawResponse ["result"].(string)
-}
-
-func (bc *BitcoinCore) getBlockHash (blockHeight uint32) string {
-	jsonResult := bc.getJson ("getblockhash", [] interface {} { blockHeight })
-
-	var rawResponse map [string] interface {}
-	err := json.Unmarshal (jsonResult, &rawResponse)
-	if err != nil { fmt.Println (err.Error ()) }
+	var rawResponse map[string]interface{}
+	err := json.Unmarshal(jsonResult, &rawResponse)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
 	// check for error from node in json
-	if rawResponse ["error"] != nil {
-		fmt.Println (rawResponse ["error"].(map [string] interface {}) ["message"])
+	if rawResponse["error"] != nil {
+		fmt.Println(rawResponse["error"].(map[string]interface{})["message"])
 		return ""
 	}
 
-	return rawResponse ["result"].(string)
+	return rawResponse["result"].(string)
 }
 
-func (bc *BitcoinCore) getTx (txId string) (map [string] interface {}, error) {
+func (bc *BitcoinCore) getBlockHash(blockHeight uint32) string {
+	jsonResult := bc.getJson("getblockhash", []interface{}{blockHeight})
 
-	jsonResult := [] byte (nil)
+	var rawResponse map[string]interface{}
+	err := json.Unmarshal(jsonResult, &rawResponse)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	// check for error from node in json
+	if rawResponse["error"] != nil {
+		fmt.Println(rawResponse["error"].(map[string]interface{})["message"])
+		return ""
+	}
+
+	return rawResponse["result"].(string)
+}
+
+func (bc *BitcoinCore) getTx(txId string) (map[string]interface{}, error) {
+
+	jsonResult := []byte(nil)
 
 	if txId != "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b" {
-		jsonResult = bc.getJson ("getrawtransaction", [] interface {} { txId, true })
+		jsonResult = bc.getJson("getrawtransaction", []interface{}{txId, true})
 	} else {
 		// the genesis transaction is a special case
 		// Bitcoin Core won't return it with this API so we handle that case here
@@ -142,79 +163,92 @@ func (bc *BitcoinCore) getTx (txId string) (map [string] interface {}, error) {
 						},
 						"error": null
 					}`
-		jsonResult = make ([] byte, len (rawJson))
-		jsonResult = [] byte (rawJson)
+		jsonResult = make([]byte, len(rawJson))
+		jsonResult = []byte(rawJson)
 	}
 
-	if len (jsonResult) == 0 {
-		return nil, errors.New ("No result from node.")
+	if len(jsonResult) == 0 {
+		return nil, errors.New("No result from node.")
 	}
 
-	var rawResponse map [string] interface {}
-	jsonError := json.Unmarshal (jsonResult, &rawResponse)
+	var rawResponse map[string]interface{}
+	jsonError := json.Unmarshal(jsonResult, &rawResponse)
 	if jsonError != nil {
 		return nil, jsonError
 	}
 
 	// check for error from node in json
-	if rawResponse ["error"] != nil {
-		return nil, errors.New ("NODE ERROR: " + rawResponse ["error"].(map [string] interface {}) ["message"].(string))
+	if rawResponse["error"] != nil {
+		return nil, errors.New("NODE ERROR: " + rawResponse["error"].(map[string]interface{})["message"].(string))
 	}
 
-	return rawResponse ["result"].(map [string] interface {}), nil
+	return rawResponse["result"].(map[string]interface{}), nil
 }
 
-func (bc *BitcoinCore) getNetworkInfo () map [string] interface {} {
-	jsonResult := bc.getJson ("getnetworkinfo", [] interface {} {})
-	if len (jsonResult) == 0 { return map [string] interface {} {} }
+func (bc *BitcoinCore) getNetworkInfo() map[string]interface{} {
+	jsonResult := bc.getJson("getnetworkinfo", []interface{}{})
+	if len(jsonResult) == 0 {
+		return map[string]interface{}{}
+	}
 
-	var rawResponse map [string] interface {}
-	err := json.Unmarshal (jsonResult, &rawResponse)
-	if err != nil { fmt.Println (err.Error ()) }
+	var rawResponse map[string]interface{}
+	err := json.Unmarshal(jsonResult, &rawResponse)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
 	// check for error from node in json
-	if rawResponse ["error"] != nil {
-		fmt.Println (rawResponse ["error"].(map [string] interface {}) ["message"])
-		return map [string] interface {} {}
+	if rawResponse["error"] != nil {
+		fmt.Println(rawResponse["error"].(map[string]interface{})["message"])
+		return map[string]interface{}{}
 	}
 
-	return rawResponse ["result"].(map [string] interface {})
+	return rawResponse["result"].(map[string]interface{})
 }
 
-func (bc *BitcoinCore) getJson (function string, params [] interface {}) [] byte {
+func (bc *BitcoinCore) getJson(function string, params []interface{}) []byte {
 
 	type jsonRequestObject struct {
-		Jsonrpc string `json:"jsonrpc"`
-		Method string `json:"method"`
-		Params [] interface {} `json:"params"`
+		Jsonrpc string        `json:"jsonrpc"`
+		Method  string        `json:"method"`
+		Params  []interface{} `json:"params"`
 	}
 
 	// create the JSON request
-	requestObject := jsonRequestObject { Jsonrpc: "2.0", Method: function, Params: params }
-	requestJsonBytes, err := json.Marshal (requestObject)
-	if err != nil { fmt.Println (err.Error ()) }
+	requestObject := jsonRequestObject{Jsonrpc: "2.0", Method: function, Params: params}
+	requestJsonBytes, err := json.Marshal(requestObject)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
 	// create the HTTP request
-	requestUrl := "http://" + app.Settings.GetNodeFullUrl () + "/"
-	req, err := http.NewRequest (http.MethodPost, requestUrl, bytes.NewBuffer (requestJsonBytes))
-	if err != nil { fmt.Println (err.Error ()) }
+	requestUrl := "http://" + app.Settings.GetNodeFullUrl() + "/"
+	req, err := http.NewRequest(http.MethodPost, requestUrl, bytes.NewBuffer(requestJsonBytes))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
-	req.SetBasicAuth (app.Settings.GetNodeUsername (), app.Settings.GetNodePassword ())
+	req.SetBasicAuth(app.Settings.GetNodeUsername(), app.Settings.GetNodePassword())
 
 	// get the HTTP response
-	client := &http.Client {}
-	response, err := client.Do (req)
-	if err != nil { fmt.Println (err.Error ()) }
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	if response == nil {
-		fmt.Println ("Node returned empty response.")
-		if err != nil { fmt.Println (err.Error ()) }
-		return [] byte {}
+		fmt.Println("Node returned empty response.")
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		return []byte{}
 	}
 
 	// return the JSON response
-	json, err := io.ReadAll (response.Body)
-	if err != nil { fmt.Println (err.Error ()) }
+	json, err := io.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
 	return json
 }
-

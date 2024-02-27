@@ -20,13 +20,13 @@
 									{{ if ne .PreviousHash nil }}
 										<tr>
 											<td class="info-window-label">Previous:</td>
-											<td style="text-align:left;"><a href="{{ $.BaseUrl }}/block/{{ .PreviousHash }}">{{ .PreviousHash }}</a></td>
+											<td style="text-align:left;"><a href="{{ $.BaseUrl }}/block/{{ .PreviousHash }}" target="_blank">{{ .PreviousHash }}</a></td>
 										</tr>
 									{{ end }}
 									{{ if ne .NextHash nil }}
 										<tr>
 											<td class="info-window-label">Next:</td>
-											<td style="text-align:left;"><a href="{{ $.BaseUrl }}/block/{{ .NextHash }}">{{ .NextHash }}</a></td>
+											<td style="text-align:left;"><a href="{{ $.BaseUrl }}/block/{{ .NextHash }}" target="_blank">{{ .NextHash }}</a></td>
 										</tr>
 									{{ end }}
 									<tr>

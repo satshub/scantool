@@ -1,8 +1,8 @@
 package node
 
 import (
-//	"fmt"
-//	"errors"
+	//	"fmt"
+	//	"errors"
 	"sync"
 
 	"github.com/btc-script-explorer/scantool/btc"
@@ -16,12 +16,12 @@ type BlockRequest struct {
 }
 
 type TxRequest struct {
-	TxId string
+	TxId               string
 	IncludeInputDetail bool
 }
 
 type OutputRequest struct {
-	TxId string
+	TxId        string
 	OutputIndex uint16
 }
 
@@ -34,44 +34,49 @@ type NodeProxy struct {
 var proxy *NodeProxy = nil
 var initProxyOnce sync.Once
 
-func GetNodeProxy () (*NodeProxy, error) {
-	initProxyOnce.Do (initNodeProxy)
+func GetNodeProxy() (*NodeProxy, error) {
+	initProxyOnce.Do(initNodeProxy)
 	return proxy, nil
 }
 
-func initNodeProxy () {
-	proxy = &NodeProxy { cache: GetCache () }
+func initNodeProxy() {
+	proxy = &NodeProxy{cache: GetCache()}
 }
 
 // currently returns negative height on error, should return two values
-func (np *NodeProxy) GetCurrentBlockHeight () int32 {
-	responseChannel := np.cache.getCurrentBlockHeight ()
-	return <- responseChannel
+func (np *NodeProxy) GetCurrentBlockHeight() int32 {
+	responseChannel := np.cache.getCurrentBlockHeight()
+	return <-responseChannel
 }
 
-func (np *NodeProxy) GetBlock (blockRequest BlockRequest) btc.Block {
+func (np *NodeProxy) GetBlock(blockRequest BlockRequest) btc.Block {
 
 	blockKey := blockRequest.BlockKey
-	if len (blockKey) == 0 { blockKey = np.GetCurrentBlockHash () }
+	if len(blockKey) == 0 {
+		blockKey = np.GetCurrentBlockHash()
+	}
 
-	return np.cache.getBlock (blockKey)
+	return np.cache.getBlock(blockKey)
 }
 
-func (np *NodeProxy) GetTx (txRequest TxRequest) btc.Tx {
-	if len (txRequest.TxId) != 64 { return btc.Tx {} }
-	return np.cache.getTx (txRequest.TxId, txRequest.IncludeInputDetail)
+func (np *NodeProxy) GetTx(txRequest TxRequest) btc.Tx {
+	if len(txRequest.TxId) != 64 {
+		return btc.Tx{}
+	}
+	return np.cache.getTx(txRequest.TxId, txRequest.IncludeInputDetail)
 }
 
-func (np *NodeProxy) GetOutput (outputRequest OutputRequest) btc.Output {
-	if len (outputRequest.TxId) != 64 { return btc.Output {} }
-	return np.cache.getOutput (outputRequest.TxId, outputRequest.OutputIndex)
+func (np *NodeProxy) GetOutput(outputRequest OutputRequest) btc.Output {
+	if len(outputRequest.TxId) != 64 {
+		return btc.Output{}
+	}
+	return np.cache.getOutput(outputRequest.TxId, outputRequest.OutputIndex)
 }
 
-func (np *NodeProxy) GetCurrentBlockHash () string {
-	return <- np.cache.getCurrentBlockHash ()
+func (np *NodeProxy) GetCurrentBlockHash() string {
+	return <-np.cache.getCurrentBlockHash()
 }
 
-func (np *NodeProxy) GetNodeVersion () string {
-	return np.cache.GetNodeVersionStr ()
+func (np *NodeProxy) GetNodeVersion() string {
+	return np.cache.GetNodeVersionStr()
 }
-

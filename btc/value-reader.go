@@ -1,14 +1,14 @@
 package btc
 
 import (
-//	"fmt"
+	//	"fmt"
 	"strconv"
 )
 
-func ReadNumeric (rawBytes [] byte) uint64 {
+func ReadNumeric(rawBytes []byte) uint64 {
 	var val uint64
-	for i := len (rawBytes) - 1; i >= 0; i-- {
-		val |= uint64 (rawBytes [i])
+	for i := len(rawBytes) - 1; i >= 0; i-- {
+		val |= uint64(rawBytes[i])
 		if i > 0 {
 			val <<= 8
 		}
@@ -16,104 +16,137 @@ func ReadNumeric (rawBytes [] byte) uint64 {
 	return val
 }
 
-func ReadVarInt (rawBytes [] byte) (uint64, int) {
+func ReadVarInt(rawBytes []byte) (uint64, int) {
 
 	byteCount := 1
-	firstByte := ReadNumeric (rawBytes [0:1])
+	firstByte := ReadNumeric(rawBytes[0:1])
 	if firstByte <= 0xfc {
 		return firstByte, byteCount
 	}
 
 	switch firstByte {
-		case 0xfd: byteCount += 2; break
-		case 0xfe: byteCount += 4; break
-		case 0xff: byteCount += 8; break
+	case 0xfd:
+		byteCount += 2
+		break
+	case 0xfe:
+		byteCount += 4
+		break
+	case 0xff:
+		byteCount += 8
+		break
 	}
-	
-	return ReadNumeric (rawBytes [1 : firstByte]), byteCount
+
+	return ReadNumeric(rawBytes[1:firstByte]), byteCount
 }
 
-func ReverseBytes (rawBytes [] byte) [] byte {
+func ReverseBytes(rawBytes []byte) []byte {
 
-	byteCount := len (rawBytes)
+	byteCount := len(rawBytes)
 	indexLimit := byteCount - 1
-	reversed := make ([] byte, byteCount)
+	reversed := make([]byte, byteCount)
 	for b := 0; b < byteCount; b++ {
-		reversed [indexLimit - b] = rawBytes [b]
+		reversed[indexLimit-b] = rawBytes[b]
 	}
 	return reversed
 }
 
-
-func IsValidUncompressedPublicKey (field [] byte) bool {
-	return len (field) == 65 && field [0] == 0x04
+func IsValidUncompressedPublicKey(field []byte) bool {
+	return len(field) == 65 && field[0] == 0x04
 }
 
-func IsValidCompressedPublicKey (field [] byte) bool {
-	return len (field) == 33 && (field [0] == 0x02 || field [0] == 0x03)
+func IsValidCompressedPublicKey(field []byte) bool {
+	return len(field) == 33 && (field[0] == 0x02 || field[0] == 0x03)
 }
 
-func IsValidECPublicKey (field [] byte) bool {
-	return IsValidCompressedPublicKey (field) || IsValidUncompressedPublicKey (field)
+func IsValidECPublicKey(field []byte) bool {
+	return IsValidCompressedPublicKey(field) || IsValidUncompressedPublicKey(field)
 }
 
-func IsValidECSignature (field [] byte) bool {
+func IsValidECSignature(field []byte) bool {
 
-	fieldLen := len (field)
-	if fieldLen < 4 { return false }
-
-	// first byte
-	if field [0] != 0x30 { return false }
-
-	// overall length
-	signatureLen := int (field [1])
-	if fieldLen < signatureLen { return false }
-	if field [2] != 0x02 { return false }
-
-	// r
-	rLen := int (field [3])
-	if fieldLen < rLen + 6 { return false }
-	if field [rLen + 4] != 0x02 { return false }
-
-	// s
-	sLen := int (field [rLen + 5])
-	if rLen + sLen + 4 != signatureLen { return false }
-
-	// sighash byte
-	lastByte := field [fieldLen - 1]
-	return lastByte == 0x01 || lastByte == 0x02 || lastByte == 0x03 || lastByte == 0x81 || lastByte == 0x82 || lastByte == 0x83
-}
-
-func IsValidSchnorrPublicKey (field [] byte) bool {
-
-	// we don't have much to go on here other than the length
-	return len (field) == 32
-}
-
-func IsValidSchnorrSignature (field [] byte) bool {
-
-	fieldLen := len (field)
-	if fieldLen == 64 { return true }
-	if fieldLen != 65 { return false }
-
-	lastByte := field [fieldLen - 1]
-	return lastByte == 0x01 || lastByte == 0x02 || lastByte == 0x03 || lastByte == 0x81 || lastByte == 0x82 || lastByte == 0x83
-}
-
-func GetStackItemType (field [] byte, schnorr bool) string {
-
-	if !schnorr {
-		if IsValidECSignature (field) { return "Signature" }
-//		if IsValidUncompressedPublicKey (field) { return "Uncompressed Public Key" }
-//		if IsValidCompressedPublicKey (field) { return "Compressed Public Key" }
-		if IsValidECPublicKey (field) { return "Public Key" }
-	} else {
-		if IsValidSchnorrSignature (field) { return "Schnorr Signature" }
-		if IsValidSchnorrPublicKey (field) { return "Public Key" }
+	fieldLen := len(field)
+	if fieldLen < 4 {
+		return false
 	}
 
-	fieldLen := len (field)
-	s := ""; if fieldLen != 1 { s = "s" }
-	return "Data (" + strconv.Itoa (fieldLen) + " Byte" + s + ")"
+	// first byte
+	if field[0] != 0x30 {
+		return false
+	}
+
+	// overall length
+	signatureLen := int(field[1])
+	if fieldLen < signatureLen {
+		return false
+	}
+	if field[2] != 0x02 {
+		return false
+	}
+
+	// r
+	rLen := int(field[3])
+	if fieldLen < rLen+6 {
+		return false
+	}
+	if field[rLen+4] != 0x02 {
+		return false
+	}
+
+	// s
+	sLen := int(field[rLen+5])
+	if rLen+sLen+4 != signatureLen {
+		return false
+	}
+
+	// sighash byte
+	lastByte := field[fieldLen-1]
+	return lastByte == 0x01 || lastByte == 0x02 || lastByte == 0x03 || lastByte == 0x81 || lastByte == 0x82 || lastByte == 0x83
 }
 
+func IsValidSchnorrPublicKey(field []byte) bool {
+
+	// we don't have much to go on here other than the length
+	return len(field) == 32
+}
+
+func IsValidSchnorrSignature(field []byte) bool {
+
+	fieldLen := len(field)
+	if fieldLen == 64 {
+		return true
+	}
+	if fieldLen != 65 {
+		return false
+	}
+
+	lastByte := field[fieldLen-1]
+	return lastByte == 0x01 || lastByte == 0x02 || lastByte == 0x03 || lastByte == 0x81 || lastByte == 0x82 || lastByte == 0x83
+}
+
+func GetStackItemType(field []byte, schnorr bool) string {
+
+	if !schnorr {
+		if IsValidECSignature(field) {
+			return "Signature"
+		}
+		//		if IsValidUncompressedPublicKey (field) { return "Uncompressed Public Key" }
+		//		if IsValidCompressedPublicKey (field) { return "Compressed Public Key" }
+		if IsValidECPublicKey(field) {
+			return "Public Key"
+		}
+	} else {
+		if IsValidSchnorrSignature(field) {
+			return "Schnorr Signature"
+		}
+		if IsValidSchnorrPublicKey(field) {
+			return "Public Key"
+		}
+	}
+
+	fieldLen := len(field)
+	s := ""
+	if fieldLen != 1 {
+		s = "s"
+	}
+	return "Data (" + strconv.Itoa(fieldLen) + " Byte" + s + ")"
+}

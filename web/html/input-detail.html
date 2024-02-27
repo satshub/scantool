@@ -49,7 +49,7 @@
 										</tr>
 										<tr>
 											<td style="text-align:right; padding-right:8px; font-weight:bold;">Outpoint:</td>
-											<td style="text-align:left;"><a href="{{ .BaseUrl }}/tx/{{ .PreviousOutputTxId }}">{{ .PreviousOutputTxId }}</a> : {{ .PreviousOutputIndex }}</td>
+											<td style="text-align:left;"><a href="{{ .BaseUrl }}/tx/{{ .PreviousOutputTxId }}" target="_blank">{{ .PreviousOutputTxId }}</a> : {{ .PreviousOutputIndex }}</td>
 										</tr>
 										<tr>
 											<td style="text-align:right; padding-right:8px; font-weight:bold;">Address:</td>
@@ -63,9 +63,9 @@
 				{{ end }}
 
 				<tr>
-					<td class="maximized-section maximized-section-name" style="border:none; background-color: #e0ffe0;"></td>
+					<td class="maximized-section maximized-section-name" style="border:none; background-color: white;"></td>
 
-					<td class="maximized-section maximized-section-data" style="border:none; background-color: #e0ffe0; padding:16px 0 6px;">
+					<td class="maximized-section maximized-section-data" style="border:none; background-color: white; padding:16px 0 6px;">
 							<div id="input-{{ .InputIndex }}-as-hex-button" class="view-toggle-button view-toggle-button-on" onclick="toggle_script_view ('{{ .DisplayTypeClassPrefix }}-as-', 'view-toggle-button-off', 'view-toggle-button-on', 'hex');">View Hex</div>
 							<div id="input-{{ .InputIndex }}-as-type-button" class="view-toggle-button view-toggle-button-off" style="margin-left:2ch;" onclick="toggle_script_view ('{{ .DisplayTypeClassPrefix }}-as-', 'view-toggle-button-off', 'view-toggle-button-on', 'type');">View Types</div>
 							<div id="input-{{ .InputIndex }}-as-text-button" class="view-toggle-button view-toggle-button-off" style="margin-left:2ch;" onclick="toggle_script_view ('{{ .DisplayTypeClassPrefix }}-as-', 'view-toggle-button-off', 'view-toggle-button-on', 'text');">View Text</div>
